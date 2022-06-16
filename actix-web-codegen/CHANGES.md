@@ -1,6 +1,9 @@
 # Changes
 
 ## Unreleased - 2021-xx-xx
+- Preserve function visibility for routing macros. [#2714]
+
+[#2714]: https://github.com/actix/actix-web/pull/2714
 
 
 ## 4.0.1 - 2022-06-11
