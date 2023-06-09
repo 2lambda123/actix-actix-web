@@ -317,12 +317,50 @@ impl HttpResponseBuilder {
     /// Set a streaming body and build the `HttpResponse`.
     ///
     /// `HttpResponseBuilder` can not be used after this call.
+    ///
+    /// if `Content-Type` is not set, then it is automatically set to `application/octet-stream`.
+    ///
+    /// if `Content-Length` is set, then `no_chunk()` is automatically called.
     #[inline]
     pub fn streaming<S, E>(&mut self, stream: S) -> HttpResponse
     where
         S: Stream<Item = Result<Bytes, E>> + 'static,
         E: Into<BoxError> + 'static,
     {
+        // Set mime type to application/octet-stream if it is not set
+        let contains_mime = if let Some(parts) = self.inner() {
+            parts.headers.contains_key(header::CONTENT_TYPE)
+        } else {
+            true
+        };
+
+        if !contains_mime {
+            self.insert_header((header::CONTENT_TYPE, mime::APPLICATION_OCTET_STREAM));
+        }
+
+        let contains_length = if let Some(parts) = self.inner() {
+            parts.headers.contains_key(header::CONTENT_LENGTH)
+        } else {
+            false
+        };
+
+        if contains_length {
+            // Since contains_length is true, these two lines will not panic
+            let parts = self.inner().unwrap();
+            let length = parts.headers.get(header::CONTENT_LENGTH).unwrap().to_str();
+
+            if let Ok(length) = length {
+                // length is now of type &str
+                if let Ok(length) = length.parse::<u64>() {
+                    //length is now of type u64
+                    // Set no_chunking
+                    // Since no_chuking() uses insert_header(),
+                    // this will not lead to duplicated header even if it exists
+                    self.no_chunking(length);
+                }
+            }
+        }
+
         self.body(BodyStream::new(stream))
     }
 
