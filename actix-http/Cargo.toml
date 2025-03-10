@@ -113,7 +113,7 @@ derive_more = { version = "2", features = ["as_ref", "deref", "deref_mut", "disp
 encoding_rs = "0.8"
 foldhash = "0.1"
 futures-core = { version = "0.3.17", default-features = false, features = ["alloc"] }
-http = "0.2.7"
+http = "1.2.0"
 httparse = "1.5.1"
 httpdate = "1.0.1"
 itoa = "1"
